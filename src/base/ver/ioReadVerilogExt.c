@@ -1,5 +1,38 @@
+/**CFile****************************************************************
+
+  FileName    [ioReadVerilog.c]
+
+  SystemName  [ABC: Logic synthesis and verification system.]
+
+  PackageName [Command processing package.]
+
+  Synopsis    [Procedure to read network from file.]
+
+  Author      [Alan Mishchenko]
+  
+  Affiliation [UC Berkeley]
+
+  Date        [Ver. 1.0. Started - June 20, 2005.]
+
+  Revision    [$Id: ioReadVerilog.c,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
+
+***********************************************************************/
+
 #include "base/io/ioAbc.h"
 #include "base/ver/ver.h"
+
+ABC_NAMESPACE_IMPL_START
+
+
+////////////////////////////////////////////////////////////////////////
+///                        DECLARATIONS                              ///
+////////////////////////////////////////////////////////////////////////
+
+extern Abc_Des_t * Ver_ParseFileExt( char * pFileName, Abc_Des_t * pGateLib, int fCheck, int fUseMemMan );
+
+////////////////////////////////////////////////////////////////////////
+///                     FUNCTION DEFINITIONS                         ///
+////////////////////////////////////////////////////////////////////////
 
 /**Function*************************************************************
 
@@ -12,14 +45,14 @@
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Io_ReadVerilog( char * pFileName, int fCheck )
+Abc_Ntk_t * Io_ReadVerilogExt( char * pFileName, int fCheck )
 {
     Abc_Ntk_t * pNtk, * pTemp;
     Abc_Des_t * pDesign;
     int i, RetValue;
 
     // parse the verilog file
-    pDesign = Ver_ParseFile( pFileName, NULL, fCheck, 1 );
+    pDesign = Ver_ParseFileExt( pFileName, NULL, fCheck, 1 );
     if ( pDesign == NULL )
         return NULL;
 
@@ -58,3 +91,12 @@ Abc_Ntk_t * Io_ReadVerilog( char * pFileName, int fCheck )
 //    Abc_NtkPrintBoxInfo( pNtk );
     return pNtk;
 }
+
+////////////////////////////////////////////////////////////////////////
+///                       END OF FILE                                ///
+////////////////////////////////////////////////////////////////////////
+
+
+
+ABC_NAMESPACE_IMPL_END
+
