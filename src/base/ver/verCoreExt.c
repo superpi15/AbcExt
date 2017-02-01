@@ -1314,7 +1314,7 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
     if ( !Ver_ParseConvertNetwork( pMan, pNtk, pMan->fMapped ) )
         return 0;
 
-    //pWord = Ver_ParseGetName( pMan );
+    pWord = Ver_ParseGetName( pMan );
     //if(pWord!=NULL) { if( strcmp(pWord,"") ) printf("gate name=%s\n",pWord); }
     // this is gate name - throw it away
     if ( Ver_StreamPopChar(p) != '(' )
@@ -1328,6 +1328,23 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
     // create the node
     pNode = Abc_NtkCreateNode( pNtk );
 
+    if ( pWord ){
+        if( strcmp(pWord,"") ){ //If the gate name is given, add the name to hash table
+            Abc_Obj_t * pRes;
+            pRes=NULL;
+            
+            if( Nm_ManFindIdByName( pNtk->pManName, pWord, ABC_OBJ_NODE ) >=0 ){
+                sprintf( pMan->sError, "Duplicate name %s.", pWord );
+                Ver_ParsePrintErrorMessage( pMan );
+                return 0;
+            }
+
+            Nm_ManStoreIdName( pNtk->pManName, pNode->Id, pNode->Type, pWord, NULL );
+            //pRes= Abc_NtkFindNode( pNtk, pWord );\
+            printf("Get name=%s, type=%d\n",pWord,pNode->Type);\
+            assert( pRes==pNode );
+        }
+    }
     // parse pairs of formal/actural inputs
     while ( 1 )
     {
