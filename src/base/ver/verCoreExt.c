@@ -1332,7 +1332,7 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
         if( strcmp(pWord,"") ){ //If the gate name is given, add the name to hash table
             Abc_Obj_t * pRes;
             pRes=NULL;
-            
+
             if( Nm_ManFindIdByName( pNtk->pManName, pWord, ABC_OBJ_NODE ) >=0 ){
                 sprintf( pMan->sError, "Duplicate name %s.", pWord );
                 Ver_ParsePrintErrorMessage( pMan );
