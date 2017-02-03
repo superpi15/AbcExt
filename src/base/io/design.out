@@ -1,0 +1,25 @@
+// Benchmark "top" written by ABC on Fri Feb  3 04:10:45 2017
+
+module top ( 
+    \a[0] , \a[1] , \a[2] , sel,
+    \out[0] , \out[1]   );
+  input  \a[0] , \a[1] , \a[2] , sel;
+  output \out[0] , \out[1] ;
+  wire \top|z[0] , \top|z[1] , n19, n17, n20, n21, n18, n22, n23, \top|w6 ,
+    \top|w7 ;
+  assign \top|z[0]  = ~\a[0] ;
+  assign \top|z[1]  = ~\a[0]  ^ \a[1] ;
+  assign n19 = \a[0]  | \a[1] ;
+  assign n17 = ~\a[2]  ^ n19;
+  assign n20 = \a[2]  & \a[1] ;
+  assign n21 = \a[2]  & \a[0] ;
+  assign n18 = ~n20 & ~n21;
+  assign n22 = ~sel & ~n18;
+  assign n23 = ~sel & ~n17;
+  assign \out[1]  = n22 | \top|w6 ;
+  assign \out[0]  = n23 | \top|w7 ;
+  assign \top|w6  = sel & \top|z[1] ;
+  assign \top|w7  = sel & \top|z[0] ;
+endmodule
+
+

@@ -1,1 +1,2 @@
-SRC +=	src/base/ver/verCore.c
+SRC +=	src/base/ver/verCoreExt.c \
+	src/base/ver/ioReadVerilogExt.c 

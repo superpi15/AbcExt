@@ -1341,8 +1341,8 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
 
             Nm_ManStoreIdName( pNtk->pManName, pNode->Id, pNode->Type, pWord, NULL );
             //pRes= Abc_NtkFindNode( pNtk, pWord );\
-            printf("Get name=%s, type=%d\n",pWord,pNode->Type);\
             assert( pRes==pNode );
+            printf("Get name=%s, type=%d\n",pWord,pNode->Type);
         }
     }
     // parse pairs of formal/actural inputs

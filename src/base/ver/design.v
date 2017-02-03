@@ -18,7 +18,7 @@ module top(a, sel, out);
     or (w1, a[0], a[1]);
     xnor (z[2], a[2], w1);
     and (w2, a[2], a[1]);
-    and gand2 (w3, a[2], a[0]);
+    and (w3, a[2], a[0]);
     nor (z[3], w2, w3);
     nor (w4, sel, z[3]);
     nor (w5, sel, z[2]);

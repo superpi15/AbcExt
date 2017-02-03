@@ -1,0 +1,1 @@
+SRC +=	src/aig/hop/hopUtilExt.c 

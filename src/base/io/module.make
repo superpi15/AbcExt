@@ -1,0 +1,1 @@
+SRC +=	src/base/io/ioWriteVerilogExt.c 

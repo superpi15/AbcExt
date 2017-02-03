@@ -20,8 +20,8 @@ int main( int argc, char** argv ){
 	Abc_Start();
 	Abc_Ntk_t * pNtk= Io_ReadVerilogExt( argv[1], 1 );
 	//Abc_Ntk_t * pNtkRes = Abc_NtkStrash( pNtk, 0, 1, 0 );
-	if( argc>=2 )
-	Io_WriteVerilog( pNtk, argv[2] );
+	if( argc>=2 ) Io_WriteVerilog( pNtk, argv[2] );
+	
 	Abc_NtkDelete( pNtk );
 	Abc_Stop();
 }

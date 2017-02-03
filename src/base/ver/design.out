@@ -1,0 +1,33 @@
+// Benchmark "top" written by ABC on Thu Feb  2 00:03:56 2017
+
+module top ( 
+    \a[0] , \a[1] , \a[2] , sel,
+    \out[0] , \out[1]   );
+  input  \a[0] , \a[1] , \a[2] , sel;
+  output \out[0] , \out[1] ;
+  wire w1, \z[2] , w2, w3, \z[3] , w4, w5, sel, \z[1] , w6, sel, \z[0] , w7;
+  top2 box0(.a(sel), .b(\z[1] ), .c(w6));
+  top2 box1(.a(sel), .b(\z[0] ), .c(w7));
+  assign \z[0]  = ~\a[0] ;
+  assign \z[1]  = ~\a[0]  ^ \a[1] ;
+  assign w1 = \a[0]  | \a[1] ;
+  assign \z[2]  = ~\a[2]  ^ w1;
+  assign w2 = \a[2]  & \a[1] ;
+  assign w3 = \a[2]  & \a[0] ;
+  assign \z[3]  = ~w2 & ~w3;
+  assign w4 = ~sel & ~\z[3] ;
+  assign w5 = ~sel & ~\z[2] ;
+  assign \out[1]  = w4 | w6;
+  assign \out[0]  = w5 | w7;
+endmodule
+
+
+module top2 ( 
+    a, b,
+    c  );
+  input  a, b;
+  output c;
+  assign c = a & b;
+endmodule
+
+
