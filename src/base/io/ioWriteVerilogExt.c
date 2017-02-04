@@ -20,6 +20,7 @@
 
 #include "base/io/ioAbc.h"
 #include "base/main/main.h"
+#include "base/ver/verExt.h"
 #include "map/mio/mio.h"
 #include "misc/nm/nmInt.h"
 ABC_NAMESPACE_IMPL_START
@@ -564,20 +565,27 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
 
         Abc_NtkForEachNode( pNtk, pObj, i )
         {
-            pFunc = (Hop_Obj_t *)pObj->pData;
             // store the complemented attribute
             //fCompl = Hop_IsComplement(pObj);
-            /**
+            /**/
             pEntry= NULL;
+            fprintf( pFile, "%s", VerExt_GetGateName( pObj->GateType ) );
             if( (pEntry= Nm_ManTableLookupId( pObj->pNtk->pManName, pObj->Id )) )
                 fprintf( pFile, "%s", pEntry->Name );
 
             fprintf( pFile, " ( %s", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(pObj))) );
             Abc_ObjForEachFanin( pObj, pFanin, k )
                 fprintf( pFile, ", %s", Io_WriteVerilogGetName(Abc_ObjName(pFanin)) );
-            fprintf( pFile, ");\n" );
-            /**/
-            //Hop_ObjIsExor(pFunc);
+            
+
+            fprintf( pFile, "); \n " );
+
+            
+            pFunc = (Hop_Obj_t *)pObj->pData;
+            Hop_ObjPrintVerilogExt( pFile, pFunc, vLevels, 0 );
+            fprintf( pFile, ";\n" );
+            /**
+            pFunc = (Hop_Obj_t *)pObj->pData;
             fprintf( pFile, "  assign %s = ", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(pObj))) );
             // set the input names
             Abc_ObjForEachFanin( pObj, pFanin, k )

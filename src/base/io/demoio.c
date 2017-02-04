@@ -1,6 +1,7 @@
 #include <misc/util/abc_global.h>
 #include <sat/bsat/satSolver.h>
 #include "base/io/ioAbc.h"
+#include "base/ver/verExt.h"
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -27,11 +28,13 @@ int main( int argc, char** argv ){
 	Abc_Start();
 	//Abc_Ntk_t * pNtk= Io_Read( argv[1], IO_FILE_VERILOG, 1 ,0);
 	//Abc_Ntk_t * pNtk= Io_ReadNetlist( argv[1], IO_FILE_VERILOG, 1 );
-	Abc_Ntk_t * pNtk= Io_ReadVerilogExt( argv[1], 1 );
+	VerExt_Des_t * pDes = Io_ReadVerilogExt( argv[1], 0 );
+	//Abc_Ntk_t * pNtk= Abc_NtkDup( pDes->pNtk );
+	Abc_Ntk_t * pNtk= pDes->pNtk;
 	//Abc_Ntk_t * pNtk= Io_ReadVerilog( argv[1], 1 );
 	//pNtk = Abc_NtkToLogic( pNtk );
 	//Abc_Ntk_t * pNtkRes = Abc_NtkStrash( pNtk, 0, 1, 0 );
-
+	/**
     if ( Abc_NtkWhiteboxNum(pNtk) > 0 )
     {
         Abc_Ntk_t * pTemp;
@@ -43,13 +46,15 @@ int main( int argc, char** argv ){
             return NULL;
         }
     }
-	pNtk= Abc_NtkToLogic( pNtk );
-	pNtk= Abc_NtkToNetlist( pNtk );
+    /**/
+	//pNtk= Abc_NtkToLogic( pNtk );
+	//pNtk= Abc_NtkToNetlist( pNtk );
 	printf("%d %d\n", Abc_NtkHasAig(pNtk) , Abc_NtkHasMapping(pNtk) );
 	printf("%d %d\n", Abc_NtkIsAigNetlist(pNtk) , Abc_NtkIsMappedNetlist(pNtk) );
 
 	if( argc>=2 ) Io_WriteVerilogExt( pNtk, argv[2] );
 	
-	Abc_NtkDelete( pNtk );
+	//Abc_NtkDelete( pNtk );
+	VerExt_DesDelete( pDes );
 	Abc_Stop();
 }

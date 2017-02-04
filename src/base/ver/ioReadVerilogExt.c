@@ -20,6 +20,7 @@
 
 #include "base/io/ioAbc.h"
 #include "base/ver/ver.h"
+#include "base/ver/verExt.h"
 
 ABC_NAMESPACE_IMPL_START
 
@@ -45,7 +46,7 @@ extern Abc_Des_t * Ver_ParseFileExt( char * pFileName, Abc_Des_t * pGateLib, int
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Io_ReadVerilogExt( char * pFileName, int fCheck )
+VerExt_Des_t * Io_ReadVerilogExt( char * pFileName, int fCheck )
 {
     Abc_Ntk_t * pNtk, * pTemp;
     Abc_Des_t * pDesign;
@@ -89,7 +90,9 @@ Abc_Ntk_t * Io_ReadVerilogExt( char * pFileName, int fCheck )
 
 //Io_WriteVerilog( pNtk, "_temp.v" );
 //    Abc_NtkPrintBoxInfo( pNtk );
-    return pNtk;
+    VerExt_Des_t * pDes = VerExt_DesAlloc();
+    pDes->pNtk= pNtk;
+    return pDes;
 }
 
 ////////////////////////////////////////////////////////////////////////

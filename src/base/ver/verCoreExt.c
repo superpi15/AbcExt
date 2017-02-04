@@ -19,6 +19,7 @@
 ***********************************************************************/
 
 #include "base/ver/ver.h"
+#include "base/ver/verExt.h"
 #include "map/mio/mio.h"
 #include "base/main/main.h"
 
@@ -38,18 +39,6 @@ typedef enum {
     VER_SIG_REG,
     VER_SIG_WIRE
 } Ver_SignalType_t;
-
-// types of verilog gates
-typedef enum { 
-    VER_GATE_AND = 0,
-    VER_GATE_OR,
-    VER_GATE_XOR,
-    VER_GATE_BUF,
-    VER_GATE_NAND,
-    VER_GATE_NOR,
-    VER_GATE_XNOR,
-    VER_GATE_NOT
-} Ver_GateType_t;
 
 static Ver_Man_t * Ver_ParseStart( char * pFileName, Abc_Des_t * pGateLib );
 static void Ver_ParseStop( Ver_Man_t * p );
@@ -1353,6 +1342,7 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
         if ( pWord == NULL )
             return 0;
         // get the net corresponding to this output
+
         pNet = Ver_ParseFindNet( pNtk, pWord );
         if ( pNet == NULL )
         {
@@ -1395,6 +1385,8 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
         return 0;
     }
     // add logic function
+    pNode->GateType= GateType;
+    printf("%s\n", VerExt_GetGateName(pNode->GateType) );
     if ( GateType == VER_GATE_AND || GateType == VER_GATE_NAND )
         pNode->pData = Hop_CreateAnd( (Hop_Man_t *)pNtk->pManFunc, Abc_ObjFaninNum(pNode) );
     else if ( GateType == VER_GATE_OR || GateType == VER_GATE_NOR )
@@ -1405,6 +1397,7 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
         pNode->pData = Hop_CreateAnd( (Hop_Man_t *)pNtk->pManFunc, Abc_ObjFaninNum(pNode) );
     if ( GateType == VER_GATE_NAND || GateType == VER_GATE_NOR || GateType == VER_GATE_XNOR || GateType == VER_GATE_NOT )
         pNode->pData = Hop_Not( (Hop_Obj_t *)pNode->pData );
+    /**/
     return 1;
 }
 
