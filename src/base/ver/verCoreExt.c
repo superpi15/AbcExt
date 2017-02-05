@@ -197,7 +197,7 @@ void Ver_ParseInternal( Ver_Man_t * pMan )
     while ( 1 )
     {
         // get the next token
-        pToken = Ver_ParseGetName( pMan );
+        pToken = VerExt_ParseGetName( pMan );
         if ( pToken == NULL )
             break;
         if ( strcmp( pToken, "module" ) )
@@ -373,7 +373,7 @@ int Ver_ParseModule( Ver_Man_t * pMan )
     int RetValue;
 
     // get the network name
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
 
     // get the network with this name
     pNtk = Ver_ParseFindOrCreateNetwork( pMan, pWord );
@@ -388,7 +388,7 @@ int Ver_ParseModule( Ver_Man_t * pMan )
 
     // skip to the end of parentheses
     do {
-        if ( Ver_ParseGetName( pMan ) == NULL )
+        if ( VerExt_ParseGetName( pMan ) == NULL )
             return 0;
         Symbol = Ver_StreamPopChar(p);
     } while ( Symbol == ',' );
@@ -407,7 +407,7 @@ int Ver_ParseModule( Ver_Man_t * pMan )
     while ( 1 )
     {
         Extra_ProgressBarUpdate( pMan->pProgress, Ver_StreamGetCurPosition(p), NULL );
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
         if ( !strcmp( pWord, "input" ) )
@@ -476,7 +476,7 @@ int Ver_ParseModule( Ver_Man_t * pMan )
         if ( !Ver_ParseSkipComments( pMan ) )
             return 0;
         // get new word
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
     }
@@ -777,7 +777,7 @@ int Ver_ParseSignal( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_SignalType_t SigTyp
     while ( 1 )
     {
         // get the next word
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
 
@@ -793,7 +793,7 @@ int Ver_ParseSignal( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_SignalType_t SigTyp
             if ( *pWord == 0 )
             {
                 // get the signal name
-                pWord = Ver_ParseGetName( pMan );
+                pWord = VerExt_ParseGetName( pMan );
                 if ( pWord == NULL )
                     return 0;
             }
@@ -863,7 +863,7 @@ int Ver_ParseAlways( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
     char * pWord, * pWord2;
     char Symbol;
     // parse the directive 
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
     if ( pWord == NULL )
         return 0;
     if ( pWord[0] == '@' )
@@ -871,7 +871,7 @@ int Ver_ParseAlways( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
         Ver_StreamSkipToChars( p, ")" );
         Ver_StreamPopChar(p);
         // parse the directive 
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
     }
@@ -885,7 +885,7 @@ int Ver_ParseAlways( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
         if ( !fStopAfterOne )
         {
             // get the name of the output signal
-            pWord = Ver_ParseGetName( pMan );
+            pWord = VerExt_ParseGetName( pMan );
             if ( pWord == NULL )
                 return 0;
             // look for the end of directive
@@ -914,7 +914,7 @@ int Ver_ParseAlways( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
         if ( !Ver_ParseSkipComments( pMan ) )
             return 0;
         // get the second name
-        pWord2 = Ver_ParseGetName( pMan );
+        pWord2 = VerExt_ParseGetName( pMan );
         if ( pWord2 == NULL )
             return 0;
         // check if the name is complemented
@@ -962,7 +962,7 @@ int Ver_ParseInitial( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
     char * pWord, * pEquation;
     char Symbol;
     // parse the directive 
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
     if ( pWord == NULL )
         return 0;
     // decide how many statements to parse
@@ -975,7 +975,7 @@ int Ver_ParseInitial( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
         if ( !fStopAfterOne )
         {
             // get the name of the output signal
-            pWord = Ver_ParseGetName( pMan );
+            pWord = VerExt_ParseGetName( pMan );
             if ( pWord == NULL )
                 return 0;
             // look for the end of directive
@@ -1073,7 +1073,7 @@ int Ver_ParseAssign( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
     while ( 1 )
     {
         // get the name of the output signal
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
         if ( strcmp(pWord, "#1") == 0 )
@@ -1100,7 +1100,7 @@ int Ver_ParseAssign( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
                 return 0;
             }
             // get the constant
-            pWord = Ver_ParseGetName( pMan );
+            pWord = VerExt_ParseGetName( pMan );
             if ( pWord == NULL )
                 return 0;
             // check if it is indeed a constant
@@ -1303,7 +1303,7 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
     if ( !Ver_ParseConvertNetwork( pMan, pNtk, pMan->fMapped ) )
         return 0;
 
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
     //if(pWord!=NULL) { if( strcmp(pWord,"") ) printf("gate name=%s\n",pWord); }
     // this is gate name - throw it away
     if ( Ver_StreamPopChar(p) != '(' )
@@ -1331,18 +1331,16 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
             Nm_ManStoreIdName( pNtk->pManName, pNode->Id, pNode->Type, pWord, NULL );
             //pRes= Abc_NtkFindNode( pNtk, pWord );\
             assert( pRes==pNode );
-            printf("Get name=%s, type=%d\n",pWord,pNode->Type);
         }
     }
     // parse pairs of formal/actural inputs
     while ( 1 )
     {
         // parse the output name
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
         // get the net corresponding to this output
-
         pNet = Ver_ParseFindNet( pNtk, pWord );
         if ( pNet == NULL )
         {
@@ -1386,7 +1384,6 @@ int Ver_ParseGateStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Ver_GateType_t Ga
     }
     // add logic function
     pNode->GateType= GateType;
-    printf("%s\n", VerExt_GetGateName(pNode->GateType) );
     if ( GateType == VER_GATE_AND || GateType == VER_GATE_NAND )
         pNode->pData = Hop_CreateAnd( (Hop_Man_t *)pNtk->pManFunc, Abc_ObjFaninNum(pNode) );
     else if ( GateType == VER_GATE_OR || GateType == VER_GATE_NOR )
@@ -1432,7 +1429,7 @@ int Ver_ParseFlopStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
     Ver_ParseSkipComments( pMan );
 
     // parse the output name
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
     if ( pWord == NULL )
         return 0;
     // get the net corresponding to this output
@@ -1463,7 +1460,7 @@ int Ver_ParseFlopStandard( Ver_Man_t * pMan, Abc_Ntk_t * pNtk )
     Ver_ParseSkipComments( pMan );
 
     // parse the output name
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
     if ( pWord == NULL )
         return 0;
     // get the net corresponding to this output
@@ -1556,7 +1553,7 @@ int Ver_ParseGate( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Mio_Gate_t * pGate )
         return 0;
 
     // parse the directive and set the pointers to the PIs/POs of the gate
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
     if ( pWord == NULL )
         return 0;
     // this is gate name - throw it away
@@ -1589,7 +1586,7 @@ int Ver_ParseGate( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Mio_Gate_t * pGate )
         }
 
         // parse the formal name
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
 
@@ -1611,7 +1608,7 @@ int Ver_ParseGate( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Mio_Gate_t * pGate )
         }
 
         // parse the actual name
-        pWord = Ver_ParseGetName( pMan );
+        pWord = VerExt_ParseGetName( pMan );
         if ( pWord == NULL )
             return 0;
         // check if the name is complemented
@@ -1731,7 +1728,7 @@ int Ver_ParseBox( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkBox )
     int i, k, Bit, Limit, nMsb, nLsb, fQuit, flag;
 
     // gate the name of the box
-    pWord = Ver_ParseGetName( pMan );
+    pWord = VerExt_ParseGetName( pMan );
     if ( pWord == NULL )
         return 0;
 
@@ -1773,7 +1770,7 @@ int Ver_ParseBox( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkBox )
             }
 
             // parse the formal name
-            pWord = Ver_ParseGetName( pMan );
+            pWord = VerExt_ParseGetName( pMan );
             if ( pWord == NULL )
                 return 0;
 
@@ -1806,7 +1803,7 @@ int Ver_ParseBox( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkBox )
             {
                 // parse the formal name
                 Ver_ParseSkipComments( pMan );
-                pWord = Ver_ParseGetName( pMan );
+                pWord = VerExt_ParseGetName( pMan );
                 if ( pWord == NULL )
                     return 0;
 
@@ -1913,7 +1910,7 @@ int Ver_ParseBox( Ver_Man_t * pMan, Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkBox )
         else
         {
             // get the next word
-            pWord = Ver_ParseGetName( pMan );
+            pWord = VerExt_ParseGetName( pMan );
             if ( pWord == NULL )
                 return 0;
             // consider the case of empty name

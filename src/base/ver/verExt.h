@@ -3,6 +3,7 @@
 #define ABC__base__ver__verExt_h
 
 #include "base/abc/abc.h"
+#include "base/ver/ver.h"
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -15,7 +16,8 @@ ABC_NAMESPACE_HEADER_START
 
 // types of verilog gates
 typedef enum { 
-    VER_GATE_AND = 0,
+	VER_GATE_UDF = 0,
+    VER_GATE_AND,
     VER_GATE_OR,
     VER_GATE_XOR,
     VER_GATE_BUF,
@@ -34,7 +36,7 @@ static inline char * VerExt_GetGateName ( Ver_GateType_t GateType ){
 	if( GateType==VER_GATE_NOR ) return "nor";
 	if( GateType==VER_GATE_XNOR ) return "xnor";
 	if( GateType==VER_GATE_NOT ) return "not";
-	return "";
+	return "(null)";
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -53,6 +55,9 @@ struct VerExt_Des_t_ {
 
 extern VerExt_Des_t * VerExt_DesAlloc();
 extern void VerExt_DesDelete( VerExt_Des_t * pDes );
+/*=== verParseExt.c ========================================================*/
+
+extern char *         VerExt_ParseGetName( Ver_Man_t * p );
 
 ABC_NAMESPACE_HEADER_END
 

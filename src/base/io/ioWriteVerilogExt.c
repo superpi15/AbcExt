@@ -39,8 +39,8 @@ static void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start );
 static void Io_WriteVerilogRegs( FILE * pFile, Abc_Ntk_t * pNtk, int Start );
 static void Io_WriteVerilogLatches( FILE * pFile, Abc_Ntk_t * pNtk );
 static void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk );
-static int  Io_WriteVerilogWiresCount( Abc_Ntk_t * pNtk );
-static char * Io_WriteVerilogGetName( char * pName );
+static int  Io_WriteVerilogWiresCountExt( Abc_Ntk_t * pNtk );
+static char * Io_WriteVerilogGetNameExt( char * pName );
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -57,11 +57,14 @@ static char * Io_WriteVerilogGetName( char * pName );
   SeeAlso     []
 
 ***********************************************************************/
-void Io_WriteVerilogExt( Abc_Ntk_t * pNtk, char * pFileName )
+void Io_WriteVerilogExt( VerExt_Des_t * pDes, char * pFileName )
 {
+    Abc_Ntk_t * pNtk = pDes->pNtk;
     Abc_Ntk_t * pNetlist;
     FILE * pFile;
     int i;
+    if ( pDes->pNtk == NULL )
+        return;
     // can only write nodes represented using local AIGs
     if ( !Abc_NtkIsAigNetlist(pNtk) && !Abc_NtkIsMappedNetlist(pNtk) )
     {
@@ -119,7 +122,7 @@ void Io_WriteVerilogInt( FILE * pFile, Abc_Ntk_t * pNtk )
 {
     // write inputs and outputs
 //    fprintf( pFile, "module %s ( gclk,\n   ", Abc_NtkName(pNtk) );
-    fprintf( pFile, "module %s ( ", Io_WriteVerilogGetName(Abc_NtkName(pNtk)) );
+    fprintf( pFile, "module %s ( ", Io_WriteVerilogGetNameExt(Abc_NtkName(pNtk)) );
     // add the clock signal if it does not exist
     if ( Abc_NtkLatchNum(pNtk) > 0 && Nm_ManFindIdByName(pNtk->pManName, "clock", ABC_OBJ_PI) == -1 )
         fprintf( pFile, "clock, " );
@@ -159,7 +162,7 @@ void Io_WriteVerilogInt( FILE * pFile, Abc_Ntk_t * pNtk )
             Io_WriteVerilogRegs( pFile, pNtk, 4 );
             fprintf( pFile, ";\n" );
         }
-        if ( Io_WriteVerilogWiresCount(pNtk) > 0 )
+        if ( Io_WriteVerilogWiresCountExt(pNtk) > 0 )
         {
             fprintf( pFile, "  wire" );
             Io_WriteVerilogWires( pFile, pNtk, 4 );
@@ -200,7 +203,7 @@ void Io_WriteVerilogPis( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
     {
         pNet = Abc_ObjFanout0(pTerm);
         // get the line length after this name is written
-        AddedLength = strlen(Io_WriteVerilogGetName(Abc_ObjName(pNet))) + 2;
+        AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
         if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
         { // write the line extender
             fprintf( pFile, "\n   " );
@@ -208,7 +211,7 @@ void Io_WriteVerilogPis( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
             LineLength  = 3;
             NameCounter = 0;
         }
-        fprintf( pFile, " %s%s", Io_WriteVerilogGetName(Abc_ObjName(pNet)), (i==Abc_NtkPiNum(pNtk)-1)? "" : "," );
+        fprintf( pFile, " %s%s", Io_WriteVerilogGetNameExt(Abc_ObjName(pNet)), (i==Abc_NtkPiNum(pNtk)-1)? "" : "," );
         LineLength += AddedLength;
         NameCounter++;
     }
@@ -255,7 +258,7 @@ void Io_WriteVerilogPos( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
         }
         
         // get the line length after this name is written
-        AddedLength = strlen(Io_WriteVerilogGetName(Abc_ObjName(pNet))) + 2;
+        AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
         if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
         { // write the line extender
             fprintf( pFile, "\n   " );
@@ -263,7 +266,7 @@ void Io_WriteVerilogPos( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
             LineLength  = 3;
             NameCounter = 0;
         }
-        fprintf( pFile, " %s%s", Io_WriteVerilogGetName(Abc_ObjName(pNet)), (i==Abc_NtkPoNum(pNtk)-1)? "" : "," );
+        fprintf( pFile, " %s%s", Io_WriteVerilogGetNameExt(Abc_ObjName(pNet)), (i==Abc_NtkPoNum(pNtk)-1)? "" : "," );
         LineLength += AddedLength;
         NameCounter++;
     }
@@ -295,9 +298,9 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
     int AddedLength;
     int NameCounter;
     int i, k, Counter, nNodes;
-
+    char * pName;
     // count the number of wires
-    nNodes = Io_WriteVerilogWiresCount( pNtk );
+    nNodes = Io_WriteVerilogWiresCountExt( pNtk );
 
     // write the wires
     Counter = 0;
@@ -307,12 +310,18 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
     {
         if ( i == 0 ) 
             continue;
+        //some non-driven net would be set to constant signal
+        if( Abc_NodeIsConst0(pObj) || Abc_NodeIsConst1(pObj) )
+            continue;
         pNet = Abc_ObjFanout0(pObj);
         if ( Abc_ObjFanoutNum(pNet) > 0 && Abc_ObjIsCo(Abc_ObjFanout0(pNet)) )
             continue;
+        pName = Io_WriteVerilogGetNameExt(Abc_ObjName(pNet));
+        if ( '0' <= pName[0] && pName[0] <= '9' )
+            continue;
         Counter++;
         // get the line length after this name is written
-        AddedLength = strlen(Io_WriteVerilogGetName(Abc_ObjName(pNet))) + 2;
+        AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
         if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
         { // write the line extender
             fprintf( pFile, "\n   " );
@@ -320,7 +329,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
             LineLength  = 3;
             NameCounter = 0;
         }
-        fprintf( pFile, " %s%s", Io_WriteVerilogGetName(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
+        fprintf( pFile, " %s%s", pName, (Counter==nNodes)? "" : "," );
         LineLength += AddedLength;
         NameCounter++;
     }
@@ -329,7 +338,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
         pNet = Abc_ObjFanin0(Abc_ObjFanin0(pObj));
         Counter++;
         // get the line length after this name is written
-        AddedLength = strlen(Io_WriteVerilogGetName(Abc_ObjName(pNet))) + 2;
+        AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
         if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
         { // write the line extender
             fprintf( pFile, "\n   " );
@@ -337,7 +346,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
             LineLength  = 3;
             NameCounter = 0;
         }
-        fprintf( pFile, " %s%s", Io_WriteVerilogGetName(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
+        fprintf( pFile, " %s%s", Io_WriteVerilogGetNameExt(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
         LineLength += AddedLength;
         NameCounter++;
     }
@@ -350,7 +359,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
             pNet = Abc_ObjFanin0(pTerm);
             Counter++;
             // get the line length after this name is written
-            AddedLength = strlen(Io_WriteVerilogGetName(Abc_ObjName(pNet))) + 2;
+            AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
             if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
             { // write the line extender
                 fprintf( pFile, "\n   " );
@@ -358,7 +367,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
                 LineLength  = 3;
                 NameCounter = 0;
             }
-            fprintf( pFile, " %s%s", Io_WriteVerilogGetName(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
+            fprintf( pFile, " %s%s", Io_WriteVerilogGetNameExt(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
             LineLength += AddedLength;
             NameCounter++;
         }
@@ -369,7 +378,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
                 continue;
             Counter++;
             // get the line length after this name is written
-            AddedLength = strlen(Io_WriteVerilogGetName(Abc_ObjName(pNet))) + 2;
+            AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
             if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
             { // write the line extender
                 fprintf( pFile, "\n   " );
@@ -377,7 +386,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
                 LineLength  = 3;
                 NameCounter = 0;
             }
-            fprintf( pFile, " %s%s", Io_WriteVerilogGetName(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
+            fprintf( pFile, " %s%s", Io_WriteVerilogGetNameExt(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
             LineLength += AddedLength;
             NameCounter++;
         }
@@ -416,7 +425,7 @@ void Io_WriteVerilogRegs( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
         pNet = Abc_ObjFanout0(Abc_ObjFanout0(pLatch));
         Counter++;
         // get the line length after this name is written
-        AddedLength = strlen(Io_WriteVerilogGetName(Abc_ObjName(pNet))) + 2;
+        AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
         if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
         { // write the line extender
             fprintf( pFile, "\n   " );
@@ -424,7 +433,7 @@ void Io_WriteVerilogRegs( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
             LineLength  = 3;
             NameCounter = 0;
         }
-        fprintf( pFile, " %s%s", Io_WriteVerilogGetName(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
+        fprintf( pFile, " %s%s", Io_WriteVerilogGetNameExt(Abc_ObjName(pNet)), (Counter==nNodes)? "" : "," );
         LineLength += AddedLength;
         NameCounter++;
     }
@@ -448,13 +457,13 @@ void Io_WriteVerilogLatches( FILE * pFile, Abc_Ntk_t * pNtk )
     if ( Abc_NtkLatchNum(pNtk) == 0 )
         return;
     // write the latches
-//    fprintf( pFile, "  always @(posedge %s) begin\n", Io_WriteVerilogGetName(Abc_ObjFanout0(Abc_NtkPi(pNtk,0))) );
+//    fprintf( pFile, "  always @(posedge %s) begin\n", Io_WriteVerilogGetNameExt(Abc_ObjFanout0(Abc_NtkPi(pNtk,0))) );
 //    fprintf( pFile, "  always begin\n" );
     fprintf( pFile, "  always @ (posedge clock) begin\n" );
     Abc_NtkForEachLatch( pNtk, pLatch, i )
     {
-        fprintf( pFile, "    %s", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pLatch)))) );
-        fprintf( pFile, " <= %s;\n", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanin0(Abc_ObjFanin0(pLatch)))) );
+        fprintf( pFile, "    %s", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pLatch)))) );
+        fprintf( pFile, " <= %s;\n", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanin0(Abc_ObjFanin0(pLatch)))) );
     }
     fprintf( pFile, "  end\n" );
     // check if there are initial values
@@ -468,9 +477,9 @@ void Io_WriteVerilogLatches( FILE * pFile, Abc_Ntk_t * pNtk )
     Abc_NtkForEachLatch( pNtk, pLatch, i )
     {
         if ( Abc_LatchInit(pLatch) == ABC_INIT_ZERO )
-            fprintf( pFile, "    %s <= 1\'b0;\n", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pLatch)))) );
+            fprintf( pFile, "    %s <= 1\'b0;\n", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pLatch)))) );
         else if ( Abc_LatchInit(pLatch) == ABC_INIT_ONE )
-            fprintf( pFile, "    %s <= 1\'b1;\n", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pLatch)))) );
+            fprintf( pFile, "    %s <= 1\'b1;\n", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pLatch)))) );
     }
     fprintf( pFile, "  end\n" );
 }
@@ -508,13 +517,13 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
         fprintf( pFile, "(" );
         Abc_NtkForEachPi( pNtkBox, pTerm, k )
         {
-            fprintf( pFile, ".%s",   Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(pTerm))) );
-            fprintf( pFile, "(%s), ", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanin0(Abc_ObjFanin(pObj,k)))) );
+            fprintf( pFile, ".%s",   Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanout0(pTerm))) );
+            fprintf( pFile, "(%s), ", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanin0(Abc_ObjFanin(pObj,k)))) );
         }
         Abc_NtkForEachPo( pNtkBox, pTerm, k )
         {
-            fprintf( pFile, ".%s",   Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanin0(pTerm))) );
-            fprintf( pFile, "(%s)%s", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout(pObj,k)))), k==Abc_NtkPoNum(pNtkBox)-1? "":", " );
+            fprintf( pFile, ".%s",   Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanin0(pTerm))) );
+            fprintf( pFile, "(%s)%s", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout(pObj,k)))), k==Abc_NtkPoNum(pNtkBox)-1? "":", " );
         }
         fprintf( pFile, ");\n" );
     }
@@ -530,16 +539,16 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
             Mio_Pin_t * pGatePin;
             if ( Abc_ObjFaninNum(pObj) == 0 && (!strcmp(Mio_GateReadName(pGate), "_const0_") || !strcmp(Mio_GateReadName(pGate), "_const1_")) )
             {
-                fprintf( pFile, "  %-*s %s = 1\'b%d;\n", Length, "assign", Io_WriteVerilogGetName(Abc_ObjName( Abc_ObjFanout0(pObj) )), !strcmp(Mio_GateReadName(pGate), "_const1_") );
+                fprintf( pFile, "  %-*s %s = 1\'b%d;\n", Length, "assign", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanout0(pObj) )), !strcmp(Mio_GateReadName(pGate), "_const1_") );
                 continue;
             }
             // write the node
             if ( fUseSimpleGateNames )
             {
                 fprintf( pFile, "%-*s ", Length, Mio_GateReadName(pGate) );
-                fprintf( pFile, "( %s", Io_WriteVerilogGetName(Abc_ObjName( Abc_ObjFanout0(pObj) )) );
+                fprintf( pFile, "( %s", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanout0(pObj) )) );
                 for ( pGatePin = Mio_GateReadPins(pGate), i = 0; pGatePin; pGatePin = Mio_PinReadNext(pGatePin), i++ )
-                    fprintf( pFile, ", %s", Io_WriteVerilogGetName(Abc_ObjName( Abc_ObjFanin(pObj,i) )) );
+                    fprintf( pFile, ", %s", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanin(pObj,i) )) );
                 assert ( i == Abc_ObjFaninNum(pObj) );
                 fprintf( pFile, " );\n" );
             }
@@ -549,12 +558,12 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
                 fprintf( pFile, "(" );
                 for ( pGatePin = Mio_GateReadPins(pGate), i = 0; pGatePin; pGatePin = Mio_PinReadNext(pGatePin), i++ )
                 {
-                    fprintf( pFile, ".%s", Io_WriteVerilogGetName(Mio_PinReadName(pGatePin)) );
-                    fprintf( pFile, "(%s), ", Io_WriteVerilogGetName(Abc_ObjName( Abc_ObjFanin(pObj,i) )) );
+                    fprintf( pFile, ".%s", Io_WriteVerilogGetNameExt(Mio_PinReadName(pGatePin)) );
+                    fprintf( pFile, "(%s), ", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanin(pObj,i) )) );
                 }
                 assert ( i == Abc_ObjFaninNum(pObj) );
-                fprintf( pFile, ".%s", Io_WriteVerilogGetName(Mio_GateReadOutName(pGate)) );
-                fprintf( pFile, "(%s)", Io_WriteVerilogGetName(Abc_ObjName( Abc_ObjFanout0(pObj) )) );
+                fprintf( pFile, ".%s", Io_WriteVerilogGetNameExt(Mio_GateReadOutName(pGate)) );
+                fprintf( pFile, "(%s)", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanout0(pObj) )) );
                 fprintf( pFile, ");\n" );
             }
         }
@@ -568,28 +577,30 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
             // store the complemented attribute
             //fCompl = Hop_IsComplement(pObj);
             /**/
+            if( Abc_NodeIsConst0( pObj ) || Abc_NodeIsConst1( pObj ) )
+                continue;
             pEntry= NULL;
             fprintf( pFile, "%s", VerExt_GetGateName( pObj->GateType ) );
             if( (pEntry= Nm_ManTableLookupId( pObj->pNtk->pManName, pObj->Id )) )
-                fprintf( pFile, "%s", pEntry->Name );
+                fprintf( pFile, " %s", pEntry->Name );
 
-            fprintf( pFile, " ( %s", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(pObj))) );
+            fprintf( pFile, " ( %s", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanout0(pObj))) );
             Abc_ObjForEachFanin( pObj, pFanin, k )
-                fprintf( pFile, ", %s", Io_WriteVerilogGetName(Abc_ObjName(pFanin)) );
+                fprintf( pFile, ", %s", Io_WriteVerilogGetNameExt(Abc_ObjName(pFanin)) );
             
 
-            fprintf( pFile, "); \n " );
+            fprintf( pFile, "); \n" );
 
-            
+            /**
             pFunc = (Hop_Obj_t *)pObj->pData;
             Hop_ObjPrintVerilogExt( pFile, pFunc, vLevels, 0 );
             fprintf( pFile, ";\n" );
             /**
             pFunc = (Hop_Obj_t *)pObj->pData;
-            fprintf( pFile, "  assign %s = ", Io_WriteVerilogGetName(Abc_ObjName(Abc_ObjFanout0(pObj))) );
+            fprintf( pFile, "  assign %s = ", Io_WriteVerilogGetNameExt(Abc_ObjName(Abc_ObjFanout0(pObj))) );
             // set the input names
             Abc_ObjForEachFanin( pObj, pFanin, k )
-                Hop_IthVar((Hop_Man_t *)pNtk->pManFunc, k)->pData = Extra_UtilStrsav(Io_WriteVerilogGetName(Abc_ObjName(pFanin)));
+                Hop_IthVar((Hop_Man_t *)pNtk->pManFunc, k)->pData = Extra_UtilStrsav(Io_WriteVerilogGetNameExt(Abc_ObjName(pFanin)));
             // write the formula
             Hop_ObjPrintVerilogExt( pFile, pFunc, vLevels, 0 );
             fprintf( pFile, ";\n" );
@@ -613,13 +624,15 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-int Io_WriteVerilogWiresCount( Abc_Ntk_t * pNtk )
+int Io_WriteVerilogWiresCountExt( Abc_Ntk_t * pNtk )
 {
     Abc_Obj_t * pObj, * pNet, * pBox;
     int i, k, nWires;
     nWires = Abc_NtkLatchNum(pNtk);
     Abc_NtkForEachNode( pNtk, pObj, i )
     {
+        if( Abc_NodeIsConst0( pObj ) || Abc_NodeIsConst1( pObj ) )
+            continue;
         if ( i == 0 ) 
             continue;
         pNet = Abc_ObjFanout0(pObj);
@@ -654,29 +667,20 @@ int Io_WriteVerilogWiresCount( Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-char * Io_WriteVerilogGetName( char * pName )
+char * Io_WriteVerilogGetNameExt( char * pName )
 {
     static char Buffer[500];
     int Length, i;
     Length = strlen(pName);
-    // consider the case of a signal having name "0" or "1"
-    if ( !(Length == 1 && (pName[0] == '0' || pName[0] == '1')) )
-    {
+    if ( pName[0] == '\\' ){
         for ( i = 0; i < Length; i++ )
-            if ( !((pName[i] >= 'a' && pName[i] <= 'z') || 
-                 (pName[i] >= 'A' && pName[i] <= 'Z') || 
-                 (pName[i] >= '0' && pName[i] <= '9') || pName[i] == '_') )
-                 break;
-        if ( i == Length )
-            return pName;
+            Buffer[i] = pName[i];
+        Buffer[Length] = ' ';
+        Buffer[Length+1] = 0;
+        return Buffer;
+    } else {
+        return pName;
     }
-    // create Verilog style name
-    Buffer[0] = '\\';
-    for ( i = 0; i < Length; i++ )
-        Buffer[i+1] = pName[i];
-    Buffer[Length+1] = ' ';
-    Buffer[Length+2] = 0;
-    return Buffer;
 }
 
 ////////////////////////////////////////////////////////////////////////
