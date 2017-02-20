@@ -24,6 +24,16 @@
 
 ABC_NAMESPACE_IMPL_START
 
+////////////////////////////////////////////////////////////////////////
+///                        DECLARATIONS                              ///
+////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////
+///                     FUNCTION DEFINITIONS                         ///
+////////////////////////////////////////////////////////////////////////
+
+Abc_Ntk_t * Abc_NtkToLogicExt( Abc_Ntk_t * pNtk, int fDeFloating, int FloatingSig );
 
 /**Function*************************************************************
 
@@ -36,19 +46,20 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Abc_NtkToLogicExt( Abc_Ntk_t * pNtk )
+Abc_Ntk_t * Abc_NtkToLogicExt( Abc_Ntk_t * pNtk, int fDeFloating, int FloatingSig )
 {
     Abc_Ntk_t * pNtkNew; 
     Abc_Obj_t * pObj, * pFanin;
     int i, k;
     // consider the case of the AIG
     if ( Abc_NtkIsStrash(pNtk) )
-        return Abc_NtkAigToLogicSop( pNtk );
+        return Abc_NtkToLogic( pNtk );
     assert( Abc_NtkIsNetlist(pNtk) );
     // consider simple case when there is hierarchy
 //    assert( pNtk->pDesign == NULL );
     assert( Abc_NtkWhiteboxNum(pNtk) == 0 );
     assert( Abc_NtkBlackboxNum(pNtk) == 0 );
+    assert( FloatingSig == 0 || FloatingSig == 1 );
     // start the network
     pNtkNew = Abc_NtkStartFrom( pNtk, ABC_NTK_LOGIC, pNtk->ntkFunc );
     // duplicate the nodes 
@@ -59,8 +70,12 @@ Abc_Ntk_t * Abc_NtkToLogicExt( Abc_Ntk_t * pNtk )
     }
     // reconnect the internal nodes in the new network
     Abc_NtkForEachNode( pNtk, pObj, i )
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-            Abc_ObjAddFanin( pObj->pCopy, Abc_ObjFanin0(pFanin)->pCopy );
+        Abc_ObjForEachFanin( pObj, pFanin, k ){
+            if ( Abc_ObjFaninNum(pFanin)==0 && fDeFloating )
+                Abc_ObjAddFanin( pObj->pCopy, (FloatingSig == 0)? Abc_NtkCreateNodeConst0(pNtkNew): Abc_NtkCreateNodeConst1(pNtkNew) );
+            else
+                Abc_ObjAddFanin( pObj->pCopy, Abc_ObjFanin0(pFanin)->pCopy );
+        }
     // collect the CO nodes
     Abc_NtkFinalize( pNtk, pNtkNew );
     // fix the problem with CO pointing directly to CIs
