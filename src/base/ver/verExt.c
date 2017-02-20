@@ -48,6 +48,8 @@ VerExt_Des_t * VerExt_DesAlloc()
 {
   VerExt_Des_t * pNew = ABC_ALLOC( VerExt_Des_t, 1 );
   pNew->pNtk = NULL;
+  pNew->pNtkLogic = NULL;
+  pNew->pNtkStrash = NULL;
   return pNew;
 }
 
@@ -67,6 +69,10 @@ void VerExt_DesDelete( VerExt_Des_t * pDes )
 {
   if( pDes->pNtk )
     Abc_NtkDelete( pDes->pNtk );
+  if( pDes->pNtkLogic )
+    Abc_NtkDelete( pDes->pNtkLogic );
+  if( pDes->pNtkStrash )
+    Abc_NtkDelete( pDes->pNtkStrash );
   ABC_FREE( pDes );
 }
 ////////////////////////////////////////////////////////////////////////

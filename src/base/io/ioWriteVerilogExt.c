@@ -580,7 +580,7 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
             if( Abc_NodeIsConst0( pObj ) || Abc_NodeIsConst1( pObj ) )
                 continue;
             pEntry= NULL;
-            fprintf( pFile, "%s", VerExt_GetGateName( pObj->GateType ) );
+            fprintf( pFile, "%s", VerExt_GetGateName( (Ver_GateType_t) pObj->GateType ) );
             if( (pEntry= Nm_ManTableLookupId( pObj->pNtk->pManName, pObj->Id )) )
                 fprintf( pFile, " %s", pEntry->Name );
 

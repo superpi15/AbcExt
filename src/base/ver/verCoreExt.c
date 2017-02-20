@@ -217,11 +217,12 @@ void Ver_ParseInternal( Ver_Man_t * pMan )
     if ( !Ver_ParseAttachBoxes( pMan ) )
         return;
 
+    extern void Abc_NtkFinalizeReadExt( Abc_Ntk_t * pNtk );
     // connect the boxes and check
     Vec_PtrForEachEntry( Abc_Ntk_t *, pMan->pDesign->vModules, pNtk, i )
     {
         // fix the dangling nets
-        Abc_NtkFinalizeRead( pNtk );
+        Abc_NtkFinalizeReadExt( pNtk );
         // check the network for correctness
         if ( pMan->fCheck && !Abc_NtkCheckRead( pNtk ) )
         {

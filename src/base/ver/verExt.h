@@ -46,7 +46,9 @@ static inline char * VerExt_GetGateName ( Ver_GateType_t GateType ){
 typedef struct VerExt_Des_t_		VerExt_Des_t;
 
 struct VerExt_Des_t_ {
-	Abc_Ntk_t * pNtk;
+	Abc_Ntk_t * pNtk;			//Verilog Design
+	Abc_Ntk_t * pNtkLogic;		//Logic Network
+	Abc_Ntk_t * pNtkStrash;		//Structural Hashed AIG
 };
 
 ////////////////////////////////////////////////////////////////////////
