@@ -11,7 +11,7 @@ $(info $(MSG_PREFIX)Using LD=$(LD))
 
 PROG := abcExt
 
-MODULES :=  src/base/io	src/base/ver src/aig/hop
+MODULES :=  src/base/abc src/base/io	src/base/ver src/aig/hop
 
 all: lib$(PROG).a
 default: $(PROG)

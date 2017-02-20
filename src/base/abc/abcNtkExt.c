@@ -35,6 +35,7 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
+static void Abc_NtkFixNonDrivenNetsExt( Abc_Ntk_t * pNtk );
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
@@ -92,11 +93,75 @@ void Abc_NtkFinalizeReadExt( Abc_Ntk_t * pNtk )
             Abc_ObjAddFanin( pNet, Abc_NtkCreateNodeConst1(pNtk) );
     }
     // fix the net drivers
-    //Abc_NtkFixNonDrivenNets( pNtk );  //Not in ECO
+    //Abc_NtkFixNonDrivenNetsExt( pNtk );  //Not in ECO
 
     // reorder the CI/COs to PI/POs first
     Abc_NtkOrderCisCos( pNtk );
 }
+
+/**Function*************************************************************
+
+  Synopsis    [Reads the verilog file.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Abc_NtkFixNonDrivenNetsExt( Abc_Ntk_t * pNtk )
+{ 
+    Vec_Ptr_t * vNets;
+    Abc_Obj_t * pNet, * pNode;
+    int i;
+
+    if ( Abc_NtkNodeNum(pNtk) == 0 && Abc_NtkBoxNum(pNtk) == 0 )
+        return;
+
+    // special case
+    pNet = Abc_NtkFindNet( pNtk, "[_c1_]" );
+    if ( pNet != NULL )
+    {
+        pNode = Abc_NtkCreateNodeConst1( pNtk );
+        Abc_ObjAddFanin( pNet, pNode );
+    }
+
+    // check for non-driven nets
+    vNets = Vec_PtrAlloc( 100 );
+    Abc_NtkForEachNet( pNtk, pNet, i )
+    {
+        if ( Abc_ObjFaninNum(pNet) > 0 )
+            continue;
+        // add the constant 0 driver
+        pNode = Abc_NtkCreateNodeConst0( pNtk );
+        // add the fanout net
+        Abc_ObjAddFanin( pNet, pNode );
+        // add the net to those for which the warning will be printed
+        Vec_PtrPush( vNets, pNet );
+    }
+
+    // print the warning
+    if ( vNets->nSize > 0 )
+    {
+        printf( "Warning: Constant-0 drivers added to %d non-driven nets in network \"%s\":\n", Vec_PtrSize(vNets), pNtk->pName );
+        Vec_PtrForEachEntry( Abc_Obj_t *, vNets, pNet, i )
+        {
+            printf( "%s%s", (i? ", ": ""), Abc_ObjName(pNet) );
+            if( Abc_ObjFanoutNum(pNet)==0 )
+              printf("(zo)");
+            //if ( i == 3 )\
+            {\
+                if ( Vec_PtrSize(vNets) > 3 )\
+                    printf( " ..." );\
+                break;\
+            }
+        }
+        printf( "\n" );
+    }
+    Vec_PtrFree( vNets );
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
