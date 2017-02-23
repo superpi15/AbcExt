@@ -103,7 +103,7 @@ Abc_Ntk_t * Abc_NtkToLogicExt( Abc_Ntk_t * pNtk, int fDeFloating, int FloatingSi
 Abc_Ntk_t * Abc_NtkToLogicDefloating( Abc_Ntk_t * pNtk )
 {
     Abc_Ntk_t * pNtkNew; 
-    Abc_Obj_t * pObj, * pFanin;
+    Abc_Obj_t * pObj, * pFanin, * pPiNew;
     int i, k;
     // consider the case of the AIG
     if ( Abc_NtkIsStrash(pNtk) )
@@ -121,6 +121,12 @@ Abc_Ntk_t * Abc_NtkToLogicDefloating( Abc_Ntk_t * pNtk )
         Abc_NtkDupObj(pNtkNew, pObj, 0);
         Abc_ObjAssignName( pObj->pCopy, Abc_ObjName(Abc_ObjFanout0(pObj)), NULL );
     }
+    Abc_NtkForEachNet( pNtk, pObj, i )
+        if ( Abc_ObjFaninNum(pObj) == 0 && Abc_ObjFanoutNum(pObj) != 0 ){
+            pPiNew = Abc_NtkCreatePi( pNtkNew );
+            pObj->pCopy = pPiNew;
+            Abc_ObjAssignName( pPiNew, Abc_ObjName(pObj), NULL );
+        }
 
     // reconnect the internal nodes in the new network
     Abc_NtkForEachNode( pNtk, pObj, i )
@@ -128,8 +134,9 @@ Abc_Ntk_t * Abc_NtkToLogicDefloating( Abc_Ntk_t * pNtk )
             assert ( Abc_ObjIsNet(pFanin) );
             if ( Abc_ObjFaninNum(pFanin) != 0 )
                 Abc_ObjAddFanin( pObj->pCopy, Abc_ObjFanin0(pFanin)->pCopy );
-            else
-                Abc_ObjAddFanin( pObj->pCopy, Abc_NtkCreatePi( pNtkNew ) );
+            else{
+                Abc_ObjAddFanin( pObj->pCopy, pFanin->pCopy );
+            }
         }
     // collect the CO nodes
     Abc_NtkFinalize( pNtk, pNtkNew );
