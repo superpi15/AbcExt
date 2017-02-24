@@ -162,6 +162,41 @@ void Abc_NtkFixNonDrivenNetsExt( Abc_Ntk_t * pNtk )
     Vec_PtrFree( vNets );
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Finalizes the network using the existing network as a model.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Abc_NtkFinalizeExt( Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkNew )
+{
+    Abc_Obj_t * pObj, * pDriver, * pDriverNew;
+    int i;
+    // set the COs of the strashed network
+    Abc_NtkForEachCo( pNtk, pObj, i )
+    {
+        if ( Abc_ObjFaninNum(Abc_ObjFanin0(pObj)) != 0 ){
+            pDriver    = Abc_ObjFanin0Ntk( Abc_ObjFanin0(pObj) );
+            pDriverNew = Abc_ObjNotCond(pDriver->pCopy, Abc_ObjFaninC0(pObj));
+            Abc_ObjAddFanin( pObj->pCopy, pDriverNew );
+        } else {
+            Abc_ObjAddFanin( pObj->pCopy, Abc_ObjFanin0(pObj)->pCopy );
+        }
+    }
+    // duplicate timing manager
+    if ( pNtk->pManTime )
+        Abc_NtkTimeInitialize( pNtkNew, pNtk );
+    if ( pNtk->vPhases )
+        Abc_NtkTransferPhases( pNtkNew, pNtk );
+    if ( pNtk->pWLoadUsed )
+        pNtkNew->pWLoadUsed = Abc_UtilStrsav( pNtk->pWLoadUsed );
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////

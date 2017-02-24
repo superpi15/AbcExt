@@ -28,6 +28,7 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
+extern void Abc_NtkFinalizeExt( Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkNew );
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -139,7 +140,7 @@ Abc_Ntk_t * Abc_NtkToLogicDefloating( Abc_Ntk_t * pNtk )
             }
         }
     // collect the CO nodes
-    Abc_NtkFinalize( pNtk, pNtkNew );
+    Abc_NtkFinalizeExt( pNtk, pNtkNew );
     // fix the problem with CO pointing directly to CIs
     Abc_NtkLogicMakeSimpleCos( pNtkNew, 0 );
     // duplicate EXDC 
