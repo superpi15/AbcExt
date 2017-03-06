@@ -540,7 +540,7 @@ void Io_WriteVerilogLatches( FILE * pFile, Abc_Ntk_t * pNtk )
 ***********************************************************************/
 void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
 {
-    int fUseSimpleGateNames = 0;
+    int fUseSimpleGateNames = 1;
     Vec_Vec_t * vLevels;
     Abc_Ntk_t * pNtkBox;
     Abc_Obj_t * pObj, * pTerm, * pFanin;
