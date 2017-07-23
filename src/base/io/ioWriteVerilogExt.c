@@ -320,7 +320,6 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
         pName = Io_WriteVerilogGetNameExt(Abc_ObjName(pNet));
         if ( '0' <= pName[0] && pName[0] <= '9' )
             continue;
-        Counter++;
         // get the line length after this name is written
         AddedLength = strlen(Io_WriteVerilogGetNameExt(Abc_ObjName(pNet))) + 2;
         if ( NameCounter && LineLength + AddedLength + 3 > IO_WRITE_LINE_LENGTH )
@@ -331,6 +330,7 @@ void Io_WriteVerilogWires( FILE * pFile, Abc_Ntk_t * pNtk, int Start )
             NameCounter = 0;
         }
         fprintf( pFile, " %s%s", (Counter == 0)? "" : ",", pName );
+        Counter++;
         LineLength += AddedLength;
         NameCounter++;
     }
@@ -586,7 +586,7 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
             Mio_Pin_t * pGatePin;
             if ( Abc_ObjFaninNum(pObj) == 0 && (!strcmp(Mio_GateReadName(pGate), "_const0_") || !strcmp(Mio_GateReadName(pGate), "_const1_")) )
             {
-                fprintf( pFile, "  %-*s %s = 1\'b%d;\n", Length, "assign", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanout0(pObj) )), !strcmp(Mio_GateReadName(pGate), "_const1_") );
+                fprintf( pFile, "  %-*s ( %s, 1\'b%d);\n", Length, "buf", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanout0(pObj) )), !strcmp(Mio_GateReadName(pGate), "_const1_") );
                 continue;
             }
             // write the node

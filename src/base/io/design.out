@@ -1,25 +1,24 @@
-// Benchmark "top" written by ABC on Fri Feb  3 04:10:45 2017
+// Benchmark "top" written by ABC on Tue Feb  7 00:34:41 2017
 
 module top ( 
-    \a[0] , \a[1] , \a[2] , sel,
-    \out[0] , \out[1]   );
-  input  \a[0] , \a[1] , \a[2] , sel;
-  output \out[0] , \out[1] ;
-  wire \top|z[0] , \top|z[1] , n19, n17, n20, n21, n18, n22, n23, \top|w6 ,
-    \top|w7 ;
-  assign \top|z[0]  = ~\a[0] ;
-  assign \top|z[1]  = ~\a[0]  ^ \a[1] ;
-  assign n19 = \a[0]  | \a[1] ;
-  assign n17 = ~\a[2]  ^ n19;
-  assign n20 = \a[2]  & \a[1] ;
-  assign n21 = \a[2]  & \a[0] ;
-  assign n18 = ~n20 & ~n21;
-  assign n22 = ~sel & ~n18;
-  assign n23 = ~sel & ~n17;
-  assign \out[1]  = n22 | \top|w6 ;
-  assign \out[0]  = n23 | \top|w7 ;
-  assign \top|w6  = sel & \top|z[1] ;
-  assign \top|w7  = sel & \top|z[0] ;
+    a[0], a[1], a[2], sel,
+    out[0], out[1]  );
+  input  a[0], a[1], a[2], sel;
+  output out[0], out[1];
+  wire z[0], z[1], w1, z[2], w2, w3, z[3], w4, w5, \w6 , \1'b1 ;
+not g1 ( z[0], a[0]); 
+xnor g2 ( z[1], a[0], a[1]); 
+or g3 ( w1, a[0], a[1]); 
+xnor g4 ( z[2], a[2], w1); 
+and g5 ( w2, a[2], a[1]); 
+and g6 ( w3, a[2], a[0]); 
+nor g7 ( z[3], w2, w3); 
+nor g8 ( w4, sel, z[3]); 
+nor g9 ( w5, sel, z[2], 1'b0); 
+and g10 ( \w6 , sel, z[1], 1'b1); 
+and g11 ( \1'b1 , sel, z[0]); 
+or g12 ( out[1], w4, \w6 ); 
+or g13 ( out[0], w5, \1'b1 ); 
 endmodule
 
 
