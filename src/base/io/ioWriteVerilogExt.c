@@ -592,7 +592,7 @@ void Io_WriteVerilogObjects( FILE * pFile, Abc_Ntk_t * pNtk )
             // write the node
             if ( fUseSimpleGateNames )
             {
-                fprintf( pFile, "%-*s ", Length, Mio_GateReadName(pGate) );
+                fprintf( pFile, "  %-*s ", Length, Mio_GateReadName(pGate) );
                 fprintf( pFile, "( %s", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanout0(pObj) )) );
                 for ( pGatePin = Mio_GateReadPins(pGate), i = 0; pGatePin; pGatePin = Mio_PinReadNext(pGatePin), i++ )
                     fprintf( pFile, ", %s", Io_WriteVerilogGetNameExt(Abc_ObjName( Abc_ObjFanin(pObj,i) )) );
